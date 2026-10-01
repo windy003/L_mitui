@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mitui"
+version = "0.1.0"
+description = "Terminal UI proxy client powered by the mihomo core"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["mihomo", "clash", "proxy", "tui", "trojan"]
+classifiers = [
+  "Environment :: Console :: Curses",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+]
+# No runtime dependencies on purpose: curses and urllib ship with CPython.
+# PyYAML is used for reading subscriptions when present, with a built-in
+# fallback parser otherwise.
+dependencies = []
+
+[project.optional-dependencies]
+yaml = ["PyYAML>=5.1"]
+
+[project.scripts]
+mitui = "mitui.cli:main"
+
+[tool.setuptools]
+packages = ["mitui"]
