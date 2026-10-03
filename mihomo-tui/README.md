@@ -17,7 +17,7 @@ Linux 终端下的代理客户端，TUI 界面，mihomo（Clash.Meta）内核。
 │   JP 東京 02          trojan   jp.example.com  132ms   │ type    trojan     │
 │   SG 新加坡 03        trojan   sg.example.com  timeout │ server  hk.example │
 │                                                       │ sni     hk.example │
-│ enter select  t/T test  / filter  o sort  s start  x stop  m mode  q quit  │
+│ enter select  t/T test  o sort  s start  x stop  m mode  q quit            │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 

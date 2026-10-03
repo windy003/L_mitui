@@ -67,7 +67,6 @@ class Ui:
         self.tab = 0
         self.cursor = {0: 0, 1: 0, 3: 0}
         self.offset = {0: 0, 1: 0, 3: 0}
-        self.filter = ""
         self.sort = 0
         self.reveal = False
         self.follow = True
@@ -298,8 +297,6 @@ class Ui:
             else:
                 self.put(y, x, label, self.cp(C_DIM) | curses.A_DIM)
             x += dwidth(label) + 1
-        if self.filter and self.tab == 0:
-            self.put(y, x + 2, "/%s" % self.filter, self.cp(C_WARN))
         if self.sort and self.tab == 0:
             tag = "sort:%s" % SORTS[self.sort]
             self.put(y, max(0, w - dwidth(tag) - 2), tag, self.cp(C_DIM))
@@ -307,12 +304,6 @@ class Ui:
     # nodes -------------------------------------------------------------- #
     def visible_nodes(self) -> list:
         nodes = list(self.app.nodes)
-        if self.filter:
-            needle = self.filter.lower()
-            nodes = [n for n in nodes
-                     if needle in str(n.get("name", "")).lower()
-                     or needle in str(n.get("type", "")).lower()
-                     or needle in str(n.get("server", "")).lower()]
         key = SORTS[self.sort]
         if key == "delay":
             def rank(n):
@@ -526,7 +517,7 @@ class Ui:
             attr = self.cp(C_WARN)
         self.put(h - 2, 1, msg, attr, w - 2)
         hints = {
-            0: "enter select  t/T test  / filter  o sort  s start  x stop  "
+            0: "enter select  t/T test  o sort  s start  x stop  "
                "r restart  m mode  ? help  q quit",
             1: "n new  enter/u update  U update all  L add link  d delete  "
                "a apply  ? help  q quit",
@@ -608,8 +599,7 @@ class Ui:
             return
         if ch == ord("?"):
             return self.help_screen()
-        if ch == 27:                 # esc clears the filter, never quits
-            self.filter = ""
+        if ch == 27:                 # esc 不做任何事，但绝不退出程序
             return
         if ch == ord("q"):
             return self.try_quit()
@@ -657,12 +647,6 @@ class Ui:
             return self.spawn("selecting AUTO", self.app.select, AUTO_GROUP)
         if ch == ord("D"):
             return self.spawn("selecting DIRECT", self.app.select, "DIRECT")
-        if ch == ord("/"):
-            text = self.prompt("filter: ", self.filter)
-            if text is not None:
-                self.filter = text.strip()
-                self.cursor[0] = 0
-            return
         if ch == ord("o"):
             self.sort = (self.sort + 1) % len(SORTS)
             return
@@ -904,7 +888,7 @@ class Ui:
             "                t      test latency of the highlighted node",
             "                T      test every node",
             "                A / D  switch to the AUTO group / DIRECT",
-            "                /      filter   o sort   p reveal secrets",
+            "                o      sort   p reveal secrets",
             "                c      close all active connections",
             "",
             "Subs tab        n  add a subscription URL",
