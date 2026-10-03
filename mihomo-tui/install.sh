@@ -43,8 +43,8 @@ esac
 if command -v mihomo >/dev/null 2>&1; then
     echo "mihomo found: $(command -v mihomo)"
 else
-    echo "mihomo core not found. Install it with your package manager, or run:"
-    echo "      mitui install-core"
+    echo "mihomo core not found. Install it with your package manager, or put"
+    echo "the binary at ~/.local/share/mitui/bin/mihomo"
 fi
 echo
-echo "next: mitui sub add '<your subscription URL>'  then  mitui"
+echo "next: run  mitui  then press n to add your subscription URL"

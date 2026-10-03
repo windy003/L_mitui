@@ -758,8 +758,8 @@ class Ui:
                 "   (the core will refuse to start until then)", err=True)
         if key == "cn_direct" and self.app.st[key] and not geo_db_present():
             return self.app.say(
-                "CN-direct needs the GeoIP database -- run 'mitui install-geo' "
-                "while the core is running", err=True)
+                "CN-direct needs the GeoIP database -- put Country.mmdb in "
+                "the core directory (see the Status tab)", err=True)
         if key == "mode" and self.app.core.is_running():
             self.spawn("switching mode", self.app.set_mode,
                        str(self.app.st["mode"]))

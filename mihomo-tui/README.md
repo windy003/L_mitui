@@ -26,7 +26,6 @@ Linux 终端下的代理客户端，TUI 界面，mihomo（Clash.Meta）内核。
 ```bash
 git clone <this repo> mihomo-tui && cd mihomo-tui
 ./install.sh                 # 在 ~/.local/bin 放一个 mitui 启动器
-mitui install-core           # 没装 mihomo 的话，下载官方内核到 ~/.local/share/mitui/bin
 ```
 
 内核也可以用包管理器装（`pacman -S mihomo`、AUR、`nix`…），`mitui` 会自动在
@@ -37,8 +36,7 @@ PATH 上找 `mihomo` / `clash-meta`。想指定路径就在设置里改 `mihomo 
 ## 上手
 
 ```bash
-mitui sub add 'https://your-provider.example/link/xxxx?clash=1'   # 加订阅并拉取
-mitui                                                            # 打开 TUI
+mitui       # 没有任何命令行参数，一切都在界面里做
 ```
 
 在 TUI 里：
@@ -52,30 +50,16 @@ mitui                                                            # 打开 TUI
 然后让程序走代理：
 
 ```bash
-eval "$(mitui env)"     # 导出 http_proxy / https_proxy / all_proxy
+export http_proxy=http://127.0.0.1:7890 https_proxy=http://127.0.0.1:7890
+export all_proxy=socks5h://127.0.0.1:7890
 curl https://ifconfig.me
 ```
 
+（端口改过的话按设置页里的 `mixed port` 来。）
+
 默认在 `127.0.0.1:7890` 开一个 mixed 端口（HTTP 和 SOCKS5 同一个端口）。
 
-## 命令行（不想开界面时）
-
-```bash
-mitui sub add <url> [-n 名字]   # 添加订阅并拉取
-mitui sub list / sub update / sub rm <名字>
-mitui link 'trojan://...'      # 添加单个分享链接
-mitui nodes                    # 列出解析出来的节点
-mitui up / down / restart      # 后台启停内核
-mitui status                   # 内核状态、当前节点、流量
-mitui test -n 10               # 测延迟，打印最快的 10 个
-mitui use 'HK 01'              # 切节点（支持模糊匹配，也可用 AUTO / DIRECT）
-mitui mode rule|global|direct
-mitui logs -n 50               # 内核日志
-mitui gen                      # 只生成配置并用 mihomo -t 校验
-mitui paths                     # 各个文件在哪
-```
-
-`mitui up` 起的内核是脱离终端的，TUI 打开后会自动识别并接管显示。
+退出 TUI 时可以选择把内核留在后台继续跑，下次打开 `mitui` 会自动识别并接管显示。
 
 ## 支持的节点
 
@@ -127,16 +111,16 @@ sudo setcap cap_net_admin,cap_net_bind_service=+ep "$(command -v mihomo)"
 
 | 现象 | 处理 |
 | --- | --- |
-| `mihomo not found` | `mitui install-core`，或设置页里指定二进制路径 |
+| `mihomo not found` | 用包管理器装 mihomo，或把二进制放到 `~/.local/share/mitui/bin/mihomo`，或设置页里指定路径 |
 | 订阅拉不到 | 多数机房要求特定 UA，设置页改 `Subscription User-Agent`；或先用别的代理拉：设置 `Fetch subs via proxy` |
-| 内核起不来 | `3` 看日志，或 `mitui gen` 看 `mihomo -t` 的报错 |
+| 内核起不来 | `3` 看日志（里面有 `mihomo -t` 的报错） |
 | 提示 GeoIP 数据库下载失败 | 首次启动没法访问 GitHub 时会自动关掉「CN 直连」规则并提示；网络好了再在设置页打开 |
 | 节点全 timeout | 换测速 URL（设置页 `Latency test URL`），或确认节点本身可用 |
 | 中文节点名错位 | 终端需要 UTF-8 locale（`locale` 看 `LANG=*.UTF-8`） |
 | `install.sh` 一闪就没了 | 这是正常的：它只装一个启动器就退出，不是界面程序。要在终端里执行（WSL 用户别在资源管理器里双击），界面是装完之后的 `mitui` |
 | `mitui: command not found` | `~/.local/bin` 不在 PATH 上，`export PATH="$HOME/.local/bin:$PATH"` 写进 `~/.bashrc` |
 
-日志、配置、pid 文件的位置用 `mitui paths` 查。
+日志、配置、pid 文件都在 `~/.local/share/mitui/`，设置在 `~/.config/mitui/settings.json`。
 
 ## 开发
 
@@ -155,7 +139,7 @@ python -m unittest discover -s tests -v
 | `mitui/confgen.py` | 生成 mihomo 配置 |
 | `mitui/core.py` | 内核二进制查找 / 下载 / 进程管理 |
 | `mitui/api.py` | mihomo external-controller REST 客户端 |
-| `mitui/app.py` | 业务逻辑（TUI 和 CLI 共用） |
+| `mitui/app.py` | 业务逻辑（界面之下的一层） |
 | `mitui/ui.py` | curses 界面 |
 | `mitui/yamlio.py` | 自带的 YAML 读写（无依赖） |
 

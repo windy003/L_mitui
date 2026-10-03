@@ -56,8 +56,8 @@ def find_binary(st: Settings | None = None) -> str:
         if found:
             return found
     raise CoreError(
-        "mihomo not found. Install it with your package manager, or run "
-        "'mitui install-core', or set mihomo_path in settings."
+        "mihomo not found. Install it with your package manager, drop the "
+        "binary at %s, or set mihomo_path in settings." % local
     )
 
 
