@@ -17,12 +17,6 @@ from .subs import SubError
 
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    # 输出被管道或重定向时，保证 stdout 和 stderr 的先后顺序不乱
-    # （否则 stdout 会变成块缓冲）。
-    try:
-        sys.stdout.reconfigure(line_buffering=True)
-    except (AttributeError, OSError):
-        pass
     if argv:
         print("mitui takes no arguments: run `mitui` and do everything from "
               "the TUI (press ? for the key list).", file=sys.stderr)
