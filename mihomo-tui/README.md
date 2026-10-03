@@ -17,7 +17,7 @@ Linux 终端下的代理客户端，TUI 界面，mihomo（Clash.Meta）内核。
 │   JP 東京 02          trojan   jp.example.com  132ms   │ type    trojan     │
 │   SG 新加坡 03        trojan   sg.example.com  timeout │ server  hk.example │
 │                                                       │ sni     hk.example │
-│ enter select  t/T test  o sort  s start  x stop  m mode  q quit            │
+│ enter select  t/T test  s start  x stop  m mode  q quit                    │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -42,7 +42,7 @@ mitui       # 没有任何命令行参数，一切都在界面里做
 在 TUI 里：
 
 - `2` 进订阅页 → `n` 粘贴订阅链接 → 回车拉取。只有一个 trojan 链接时按 `L` 直接粘。
-- `1` 回节点页 → `T` 测全部延迟 → `o` 按延迟排序 → 回车选中节点。
+- `1` 回节点页 → `T` 测全部延迟 → 回车选中节点。
 - `s` 启动内核，`x` 停止，`r` 重启；`m` 切换 rule / global / direct。
 - 改了订阅或设置后按 `a` 应用（重新生成配置并热重载内核）。
 - `?` 看完整快捷键，`q` 退出（退出时可以选择保留代理在后台继续跑）。

@@ -16,7 +16,6 @@ from .util import ago, dwidth, human_bytes, human_rate, pad, trunc, ts_str
 
 TABS = ("Nodes", "Subs", "Logs", "Settings")
 MODES = ("rule", "global", "direct")
-SORTS = ("default", "delay", "name", "type")
 
 # colour pair ids
 C_HEAD = 1
@@ -27,9 +26,6 @@ C_WARN = 5
 C_BAD = 6
 C_SEL = 7
 C_TAB = 8
-
-SECRET_KEYS = ("password", "uuid", "auth-str", "obfs-password", "secret",
-               "private-key", "pre-shared-key", "token", "psk", "auth")
 
 SETTING_ITEMS = [
     ("mixed_port", "Mixed port (HTTP+SOCKS)", "int"),
@@ -67,8 +63,6 @@ class Ui:
         self.tab = 0
         self.cursor = {0: 0, 1: 0, 3: 0}
         self.offset = {0: 0, 1: 0, 3: 0}
-        self.sort = 0
-        self.reveal = False
         self.follow = True
         self.log_offset = 0
         self.busy = ""
@@ -297,32 +291,10 @@ class Ui:
             else:
                 self.put(y, x, label, self.cp(C_DIM) | curses.A_DIM)
             x += dwidth(label) + 1
-        if self.sort and self.tab == 0:
-            tag = "sort:%s" % SORTS[self.sort]
-            self.put(y, max(0, w - dwidth(tag) - 2), tag, self.cp(C_DIM))
 
     # nodes -------------------------------------------------------------- #
-    def visible_nodes(self) -> list:
-        nodes = list(self.app.nodes)
-        key = SORTS[self.sort]
-        if key == "delay":
-            def rank(n):
-                d = self.app.delays.get(n["name"])
-                if d is None:
-                    return (2, 0)
-                if d <= 0:
-                    return (1, 0)
-                return (0, d)
-            nodes.sort(key=rank)
-        elif key == "name":
-            nodes.sort(key=lambda n: str(n.get("name", "")).lower())
-        elif key == "type":
-            nodes.sort(key=lambda n: (str(n.get("type", "")),
-                                      str(n.get("name", "")).lower()))
-        return nodes
-
     def draw_nodes(self, top: int, height: int, w: int) -> None:
-        nodes = self.visible_nodes()
+        nodes = self.app.nodes
         if not nodes:
             msg = ("No nodes yet. Press 2 for the Subs tab, then n to add a "
                    "subscription URL (or L to paste a trojan:// link).")
@@ -395,23 +367,17 @@ class Ui:
         for key, value in node.items():
             if y >= top + height:
                 break
-            shown = self._fmt_value(key, value)
+            shown = self._fmt_value(value)
             self.put(y, x + 1, pad(str(key), 16), self.cp(C_DIM), 16)
             self.put(y, x + 18, shown, 0, width - 19)
             y += 1
-        if y < top + height - 1 and not self.reveal:
-            self.put(top + height - 1, x + 1, "p: reveal secrets",
-                     self.cp(C_DIM) | curses.A_DIM)
 
-    def _fmt_value(self, key: str, value) -> str:
+    def _fmt_value(self, value) -> str:
         if isinstance(value, dict):
             return "{%s}" % ", ".join("%s=%s" % (k, v) for k, v in value.items())
         if isinstance(value, list):
             return ", ".join(str(v) for v in value)
-        text = str(value)
-        if key in SECRET_KEYS and not self.reveal and text:
-            return text[:3] + "•" * max(3, min(10, len(text) - 3))
-        return text
+        return str(value)
 
     # subs --------------------------------------------------------------- #
     def draw_subs(self, top: int, height: int, w: int) -> None:
@@ -517,7 +483,7 @@ class Ui:
             attr = self.cp(C_WARN)
         self.put(h - 2, 1, msg, attr, w - 2)
         hints = {
-            0: "enter select  t/T test  o sort  s start  x stop  "
+            0: "enter select  t/T test  s start  x stop  "
                "r restart  m mode  ? help  q quit",
             1: "n new  enter/u update  U update all  L add link  d delete  "
                "a apply  ? help  q quit",
@@ -555,7 +521,7 @@ class Ui:
 
     def _count(self) -> int:
         if self.tab == 0:
-            return len(self.visible_nodes())
+            return len(self.app.nodes)
         if self.tab == 1:
             return len(self.app.st.subs)
         if self.tab == 3:
@@ -631,7 +597,7 @@ class Ui:
 
     # per-tab keys -------------------------------------------------------- #
     def keys_nodes(self, ch: int, total: int) -> None:
-        nodes = self.visible_nodes()
+        nodes = self.app.nodes
         idx = self.cursor.get(0, 0)
         node = nodes[idx] if 0 <= idx < len(nodes) else None
         if ch in (10, 13, curses.KEY_ENTER):
@@ -647,12 +613,6 @@ class Ui:
             return self.spawn("selecting AUTO", self.app.select, AUTO_GROUP)
         if ch == ord("D"):
             return self.spawn("selecting DIRECT", self.app.select, "DIRECT")
-        if ch == ord("o"):
-            self.sort = (self.sort + 1) % len(SORTS)
-            return
-        if ch == ord("p"):
-            self.reveal = not self.reveal
-            return
         if ch == ord("c"):
             if self.confirm("Close all active connections?"):
                 self.spawn("closing connections", self._close_conns)
@@ -888,7 +848,6 @@ class Ui:
             "                t      test latency of the highlighted node",
             "                T      test every node",
             "                A / D  switch to the AUTO group / DIRECT",
-            "                o      sort   p reveal secrets",
             "                c      close all active connections",
             "",
             "Subs tab        n  add a subscription URL",
