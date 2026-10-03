@@ -1,7 +1,7 @@
-"""Command line entry point. It takes no arguments and opens the TUI.
+"""命令行入口。不接受任何参数，直接打开 TUI。
 
-Everything is driven from inside the TUI -- subscriptions are added there
-with `n` (a subscription URL) or `L` (a single trojan:// share link).
+所有操作都在 TUI 里完成 —— 订阅在界面里添加：`n` 粘贴订阅链接，
+`L` 粘贴单个 trojan:// 分享链接。
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ from .subs import SubError
 
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    # Keep stdout and stderr interleaved in the right order when the output is
-    # piped or redirected (stdout would be block buffered otherwise).
+    # 输出被管道或重定向时，保证 stdout 和 stderr 的先后顺序不乱
+    # （否则 stdout 会变成块缓冲）。
     try:
         sys.stdout.reconfigure(line_buffering=True)
     except (AttributeError, OSError):
@@ -45,13 +45,13 @@ def main(argv=None) -> int:
         print("error: %s" % exc, file=sys.stderr)
         return 1
     except OSError as exc:
-        # unwritable config/data directory, full disk, bad permissions...
+        # 配置/数据目录不可写、磁盘满、权限不对……
         print("error: %s" % exc, file=sys.stderr)
         return 1
 
 
 def _is_sudo() -> bool:
-    """Started through sudo: root's HOME is not where the user's config lives."""
+    """是否通过 sudo 启动：root 的 HOME 不是用户配置所在的地方。"""
     import os
 
     return (hasattr(os, "geteuid") and os.geteuid() == 0
@@ -59,14 +59,14 @@ def _is_sudo() -> bool:
 
 
 def _root_allowed() -> bool:
-    """Escape hatch for the sudo refusal, now that there are no CLI flags."""
+    """sudo 拒绝运行时的逃生口，因为现在已经没有命令行参数了。"""
     import os
 
     return os.environ.get("MITUI_ALLOW_ROOT", "") not in ("", "0")
 
 
 def _warn_sudo() -> None:
-    """Explain the actual hazard, which depends on whether sudo kept HOME."""
+    """说明真正的风险所在 —— 取决于 sudo 是否保留了 HOME。"""
     import os
 
     user = os.environ.get("SUDO_USER", "")
