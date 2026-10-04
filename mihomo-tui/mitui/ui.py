@@ -208,7 +208,7 @@ class Ui:
         h, w = self.scr.getmaxyx()
         if y < 0 or y >= h or x < 0 or x >= w:
             return
-        # Never touch the last cell of the line: writing it can wrap or raise.
+        # 不要写入行尾最后一个单元格，否则可能触发自动换行或引发异常。
         limit = w - x - 1
         if width:
             limit = min(limit, width)
