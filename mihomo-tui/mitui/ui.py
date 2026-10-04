@@ -8,7 +8,6 @@ import queue
 import threading
 
 from .api import ApiError
-from .confgen import geo_db_present
 from .core import tun_ready
 from .settings import AUTO_GROUP
 from .subs import SubError
@@ -36,7 +35,6 @@ SETTING_ITEMS = [
     ("tun_stack", "TUN stack", "choice:system,gvisor,mixed"),
     ("dns_enable", "Built-in DNS", "bool"),
     ("fake_ip", "fake-ip mode", "bool"),
-    ("cn_direct", "Route CN traffic direct", "bool"),
     ("ipv6", "IPv6", "bool"),
     ("udp", "Enable UDP on nodes", "bool"),
     ("skip_cert_verify", "Skip TLS verify on all nodes", "bool"),
@@ -268,8 +266,6 @@ class Ui:
         bits.append("port:%s" % app.st["mixed_port"])
         if app.st["tun"]:
             bits.append("tun")
-        if app.st["cn_direct"] and not geo_db_present():
-            bits.append("geoip:missing")
         node = app.now or app.st["selected"] or "-"
         bits.append("node:%s" % trunc(str(node), 24))
         info = "  ".join(bits)
@@ -700,10 +696,6 @@ class Ui:
                 "TUN needs privileges -- run: sudo setcap "
                 "cap_net_admin,cap_net_bind_service=+ep \"$(command -v mihomo)\""
                 "   (the core will refuse to start until then)", err=True)
-        if key == "cn_direct" and self.app.st[key] and not geo_db_present():
-            return self.app.say(
-                "CN-direct needs the GeoIP database -- put Country.mmdb in "
-                "the core directory (see the Status tab)", err=True)
         if key == "mode" and self.app.core.is_running():
             self.spawn("switching mode", self.app.set_mode,
                        str(self.app.st["mode"]))

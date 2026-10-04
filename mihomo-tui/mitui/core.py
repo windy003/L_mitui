@@ -114,54 +114,6 @@ def install_core(version: str = "", arch: str = "", log=print) -> str:
     return str(target)
 
 
-GEO_MMDB_URLS = (
-    "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",
-    "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.metadb",
-)
-# every MaxMind DB file carries this marker before its metadata section
-MMDB_MAGIC = b"\xab\xcd\xefMaxMind.com"
-
-
-def install_geo(url: str = "", via_proxy: str = "", log=print) -> str:
-    """Download the GeoIP database into the core directory.
-
-    mihomo blocks on this download itself at startup, which deadlocks when the
-    only working route out is the proxy it has not started yet. Fetching it
-    here -- optionally *through* an already running proxy -- breaks the cycle.
-    """
-    paths.ensure_dirs()
-    candidates = [url] if url else list(GEO_MMDB_URLS)
-    opener = urllib.request.build_opener(
-        urllib.request.ProxyHandler(
-            {"http": via_proxy, "https": via_proxy} if via_proxy else {}
-        )
-    )
-    target = paths.CORE_HOME / "geoip.metadb"
-    errors = []
-    for candidate in candidates:
-        log("downloading %s%s"
-            % (candidate, " via %s" % via_proxy if via_proxy else ""))
-        try:
-            req = urllib.request.Request(candidate,
-                                         headers={"User-Agent": "mitui"})
-            with opener.open(req, timeout=120) as resp:
-                blob = resp.read()
-        except Exception as exc:
-            errors.append("%s: %s" % (candidate, exc))
-            continue
-        if MMDB_MAGIC not in blob[-4096:] and MMDB_MAGIC not in blob:
-            errors.append("%s: not a MaxMind database (%d bytes)"
-                          % (candidate, len(blob)))
-            continue
-        tmp = target.with_suffix(".download")
-        tmp.write_bytes(blob)
-        os.replace(tmp, target)
-        log("installed %s (%.1f MiB)" % (target, len(blob) / 1048576))
-        return str(target)
-    raise CoreError("could not download the GeoIP database:\n  "
-                    + "\n  ".join(errors))
-
-
 # --------------------------------------------------------------------------- #
 # process supervision
 # --------------------------------------------------------------------------- #

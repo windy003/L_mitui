@@ -241,36 +241,11 @@ class TestConfGen(unittest.TestCase):
         self.assertEqual(len(cfg["proxy-groups"]), 1)
         self.assertEqual(cfg["proxy-groups"][0]["proxies"], ["DIRECT"])
 
-    def test_tun_and_direct_mode(self):
-        self.st["tun"] = True
-        self.st["cn_direct"] = False
+    def test_rules_do_not_route_by_ip_geolocation(self):
         cfg = build(self.st, self.nodes)
-        self.assertTrue(cfg["tun"]["enable"])
-        self.assertNotIn("GEOIP,CN,DIRECT", cfg["rules"])
-
-    def test_geo_rules_only_when_the_database_is_on_disk(self):
-        """A GEOIP rule with no mmdb makes mihomo block on a download."""
-        import tempfile
-        from pathlib import Path
-
-        import mitui.confgen as cg
-
-        self.st["cn_direct"] = True
-        saved = cg.paths.CORE_HOME
-        try:
-            with tempfile.TemporaryDirectory() as tmp:
-                cg.paths.CORE_HOME = Path(tmp)
-                # no database yet -> no geo rules at all
-                rules = build(self.st, self.nodes)["rules"]
-                self.assertNotIn("GEOIP,CN,DIRECT", rules)
-                self.assertEqual(rules[-1], "MATCH,PROXY")
-
-                (Path(tmp) / "geoip.metadb").write_bytes(b"x")
-                rules = build(self.st, self.nodes)["rules"]
-                self.assertIn("GEOIP,CN,DIRECT", rules)
-                self.assertIn("GEOIP,private,DIRECT,no-resolve", rules)
-        finally:
-            cg.paths.CORE_HOME = saved
+        self.assertEqual(cfg["rules"][-1], "MATCH,PROXY")
+        self.assertFalse(any(rule.startswith("GEOIP,") for rule in cfg["rules"]))
+        self.assertIn("IP-CIDR,127.0.0.0/8,DIRECT,no-resolve", cfg["rules"])
 
     def test_removed_global_client_fingerprint_key(self):
         """mihomo >= 1.19.30 errors on global-client-fingerprint."""

@@ -7,7 +7,7 @@ from collections import deque
 
 from . import confgen, paths, subs
 from .api import Api, ApiError
-from .core import Core, CoreError, install_geo, log_tail
+from .core import Core, CoreError, log_tail
 from .settings import AUTO_GROUP, GLOBAL_GROUP, PROXY_GROUP, Settings
 
 UNTESTED = None
@@ -157,23 +157,9 @@ class App:
         # regenerated config.yaml that disagrees with the core still running.
         self.core.preflight(require_config=False)
         self.write_config()
-        note = ""
-        try:
-            self.core.test_config()
-        except CoreError as exc:
-            # A first run with no direct internet access cannot fetch the GeoIP
-            # database, which makes the CN-direct rule unloadable. Drop that one
-            # rule instead of leaving the user with a core that will not start.
-            if self.st["cn_direct"] and _is_geo_error(exc):
-                self.st["cn_direct"] = False
-                self.st.save()
-                self.write_config()
-                self.core.test_config()
-                note = "  (no GeoIP database: CN-direct routing disabled)"
-            else:
-                raise
+        self.core.test_config()
         self.core.preflight()
-        return note
+        return ""
 
     def start_core(self, detached: bool = False) -> str:
         note = self._validate()
@@ -197,16 +183,6 @@ class App:
         self.restore_selection()
         self.dirty = False
         return "core restarted (pid %d)%s" % (pid, note)
-
-    def install_geo(self, url: str = "", direct: bool = False, log=print) -> str:
-        """Fetch the GeoIP database, preferring the route through our own proxy."""
-        via = ""
-        if not direct and self.core.is_running():
-            via = "http://127.0.0.1:%s" % self.st["mixed_port"]
-        path = install_geo(url=url, via_proxy=via, log=log)
-        if self.st["cn_direct"]:
-            self.apply()      # the geo rules can be emitted now
-        return path
 
     def set_mode(self, mode: str) -> str:
         mode = mode.lower()
@@ -307,11 +283,3 @@ class App:
     def load_file_logs(self, n: int = 200) -> None:
         for line in log_tail(n):
             self.logs.append(line)
-
-
-def _is_geo_error(exc: Exception) -> bool:
-    """Geo trouble shows up as an error *or* as a hang on the download."""
-    text = str(exc).lower()
-    return any(word in text for word in
-               ("geoip", "geosite", "mmdb", "geo data", "geodata",
-                "country.mmdb", "timed out"))

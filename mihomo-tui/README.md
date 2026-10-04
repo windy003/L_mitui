@@ -90,7 +90,7 @@ curl https://ifconfig.me
 
 - `mixed-port` 混合端口，`external-controller` 本地 API（随机 secret，文件权限 600）
 - 两个策略组：`PROXY`（手动选择，含 DIRECT）和 `AUTO`（url-test 自动选最快）
-- 规则：私有地址段直连 → `GEOIP,CN,DIRECT`（可关）→ `MATCH,PROXY`
+- 规则：私有地址段直连 → `MATCH,PROXY`
 - 内置 DNS，默认 fake-ip；国内 DoH 解析，节点域名用 `proxy-server-nameserver`
   本地解析，避免套娃
 

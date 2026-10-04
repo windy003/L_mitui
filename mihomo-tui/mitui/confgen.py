@@ -5,15 +5,6 @@ from __future__ import annotations
 from . import paths, yamlio
 from .settings import AUTO_GROUP, PROXY_GROUP, Settings
 
-# 私有地址段和回环地址始终绕过代理；将其保留为普通规则
-# 规则（而非 GEOIP/geosite 规则集）可确保核心程序正常启动，即使
-# 尚未下载任何地理位置数据库。
-
-# 规则需要 GeoIP 时，mihomo 会在工作目录中查找以下数据库文件之一。
-# 如果文件不存在，启动时就会等待下载。因此只有数据库文件已存在时，才生成
-# 地理位置规则（参见 core.py 中的 install_geo）。
-MMDB_NAMES = ("geoip.metadb", "Country.mmdb", "GeoLite2-Country.mmdb")
-
 LOCAL_RULES = [
     "DOMAIN-SUFFIX,local,DIRECT",
     "DOMAIN-SUFFIX,localhost,DIRECT",
@@ -143,21 +134,8 @@ def _groups(st: Settings, names: list) -> list:
     return groups
 
 
-def geo_db_present(home=None) -> bool:
-    """当 mihomo 无需下载即可解析 GeoIP 规则时返回 True。"""
-    base = home or paths.CORE_HOME
-    return any((base / name).exists() for name in MMDB_NAMES)
-
-
 def _rules(st: Settings) -> list:
-    rules = list(LOCAL_RULES)
-    if st["cn_direct"] and geo_db_present():
-        rules += [
-            "GEOIP,private,DIRECT,no-resolve",
-            "GEOIP,CN,DIRECT",
-        ]
-    rules.append("MATCH,%s" % PROXY_GROUP)
-    return rules
+    return list(LOCAL_RULES) + ["MATCH,%s" % PROXY_GROUP]
 
 
 def write(st: Settings, nodes: list, path=None) -> str:

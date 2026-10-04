@@ -27,7 +27,6 @@ DEFAULTS: dict = {
     "unified_delay": True,
     "tcp_concurrent": True,
     # routing / dns
-    "cn_direct": True,                    # GEOIP,CN -> DIRECT
     "dns_enable": True,
     "fake_ip": True,
     "tun": False,                         # needs root or CAP_NET_ADMIN

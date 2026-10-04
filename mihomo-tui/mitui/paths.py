@@ -20,7 +20,7 @@ DATA_DIR = _xdg("XDG_DATA_HOME", ".local/share") / APP
 CACHE_DIR = _xdg("XDG_CACHE_HOME", ".cache") / APP
 
 SETTINGS_FILE = CONFIG_DIR / "settings.json"
-# mihomo 的工作目录：GeoIP.dat / geoip.metadb / cache.db 都放在这里。
+# mihomo 的工作目录：???????????????
 CORE_HOME = DATA_DIR / "core"
 CORE_CONFIG = CORE_HOME / "config.yaml"
 NODES_CACHE = DATA_DIR / "nodes.json"
