@@ -69,7 +69,7 @@ def _apply_defaults(st: Settings, nodes: list) -> list:
     out = []
     for node in nodes:
         node = dict(node)
-        if st["udp"] and "udp" not in node and node.get("type") != "hysteria2":
+        if st["udp"] and "udp" not in node:
             node["udp"] = True
         if st["skip_cert_verify"] and "skip-cert-verify" not in node:
             node["skip-cert-verify"] = True

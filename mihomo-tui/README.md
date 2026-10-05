@@ -77,10 +77,7 @@ curl https://ifconfig.me
 
 密码里的 URL 编码（`%40` → `@` 等）会正确还原。
 
-订阅里混着的其他协议也一并解析，不会因为一个节点看不懂就整份失败：
-`ss`（含 obfs / v2ray-plugin / shadow-tls）、`vmess`、`vless`（含 reality）、
-`hysteria` / `hysteria2`、`socks5`。Clash/mihomo 格式的 YAML 订阅直接取
-`proxies:`，所以 `tuic`、`wireguard`、`anytls` 这些也能透传。
+订阅只保留 Trojan 节点：其他分享链接协议和 YAML 中非 Trojan 类型的节点会被忽略。
 
 订阅内容的三种常见形态都支持：Clash YAML、base64 整块、以及一行一个链接的纯文本。
 
@@ -128,7 +125,7 @@ sudo setcap cap_net_admin,cap_net_bind_service=+ep "$(command -v mihomo)"
 python -m unittest discover -s tests -v
 ```
 
-27 个测试覆盖分享链接解析（trojan 各种变体、ss/vmess/vless/hysteria2）、
+测试覆盖 Trojan 分享链接解析及非 Trojan 协议拒绝、
 三种订阅载荷、YAML 读写往返、配置生成，以及一条从链接到 `config.yaml` 的端到端流程。
 
 代码结构：

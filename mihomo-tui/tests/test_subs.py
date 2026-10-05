@@ -64,52 +64,11 @@ class TestTrojan(unittest.TestCase):
         self.assertIsNone(subs.parse_uri("ftp://x@y:1"))
 
 
-class TestOtherProtocols(unittest.TestCase):
-    def test_ss_legacy(self):
-        uri = "ss://" + b64("aes-256-gcm:secretpw@ss.example:8388") + "#SS1"
-        node = subs.parse_uri(uri)
-        self.assertEqual(node["type"], "ss")
-        self.assertEqual(node["cipher"], "aes-256-gcm")
-        self.assertEqual(node["password"], "secretpw")
-        self.assertEqual(node["port"], 8388)
-
-    def test_ss_sip002_with_obfs(self):
-        uri = ("ss://" + b64("chacha20-ietf-poly1305:pw")
-               + "@ss.example:443?plugin=obfs-local%3Bobfs%3Dtls"
-                 "%3Bobfs-host%3Dbing.com#SS2")
-        node = subs.parse_uri(uri)
-        self.assertEqual(node["plugin"], "obfs")
-        self.assertEqual(node["plugin-opts"]["mode"], "tls")
-        self.assertEqual(node["plugin-opts"]["host"], "bing.com")
-
-    def test_vmess(self):
-        payload = ('{"v":"2","ps":"VM","add":"v.example","port":"443",'
-                   '"id":"11111111-2222-3333-4444-555555555555","aid":"0",'
-                   '"net":"ws","path":"/p","host":"h.example","tls":"tls"}')
-        node = subs.parse_uri("vmess://" + b64(payload))
-        self.assertEqual(node["type"], "vmess")
-        self.assertEqual(node["name"], "VM")
-        self.assertEqual(node["port"], 443)
-        self.assertTrue(node["tls"])
-        self.assertEqual(node["network"], "ws")
-        self.assertEqual(node["ws-opts"]["path"], "/p")
-
-    def test_vless_reality(self):
-        node = subs.parse_uri(
-            "vless://aaaa-bbbb@r.example:443?security=reality&pbk=KEY&sid=ab"
-            "&sni=www.apple.com&fp=chrome&type=tcp&flow=xtls-rprx-vision#R")
-        self.assertEqual(node["type"], "vless")
-        self.assertTrue(node["tls"])
-        self.assertEqual(node["reality-opts"]["public-key"], "KEY")
-        self.assertEqual(node["flow"], "xtls-rprx-vision")
-
-    def test_hysteria2(self):
-        node = subs.parse_uri(
-            "hysteria2://pw@h2.example:8443?sni=h2.example&insecure=1"
-            "&obfs=salamander&obfs-password=xyz#H2")
-        self.assertEqual(node["type"], "hysteria2")
-        self.assertTrue(node["skip-cert-verify"])
-        self.assertEqual(node["obfs-password"], "xyz")
+class TestUnsupportedProtocols(unittest.TestCase):
+    def test_non_trojan_schemes_are_rejected(self):
+        for link in ("ss://abc", "vmess://abc", "vless://abc",
+                     "hysteria2://pw@host", "trojan-go://pw@host"):
+            self.assertIsNone(subs.parse_uri(link))
 
 
 class TestSubscriptionPayloads(unittest.TestCase):
@@ -120,7 +79,7 @@ class TestSubscriptionPayloads(unittest.TestCase):
             "ss://" + b64("aes-128-gcm:pw@c.example:8388") + "#C",
         ])
         nodes = subs.parse(b64(raw))
-        self.assertEqual([n["name"] for n in nodes], ["A", "B", "C"])
+        self.assertEqual([n["name"] for n in nodes], ["A", "B"])
 
     def test_plain_lines_with_noise(self):
         raw = ("# comment\n\ntrojan://pw@a.example:443#A\n"
@@ -145,6 +104,7 @@ proxies:
       headers:
         Host: hk.example.com
   - {name: Flow JP, type: trojan, server: jp.example.com, port: 443, password: pw2, udp: true}
+  - {name: SS, type: ss, server: ss.example.com, port: 8388, cipher: aes-128-gcm, password: pw}
   - name: Unsupported
     type: weird-protocol
     server: x
