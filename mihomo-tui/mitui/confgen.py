@@ -14,8 +14,6 @@ LOCAL_RULES = [
     "IP-CIDR,192.168.0.0/16,DIRECT,no-resolve",
     "IP-CIDR,169.254.0.0/16,DIRECT,no-resolve",
     "IP-CIDR,224.0.0.0/4,DIRECT,no-resolve",
-    "IP-CIDR6,fe80::/10,DIRECT,no-resolve",
-    "IP-CIDR6,::1/128,DIRECT,no-resolve",
 ]
 
 
@@ -26,9 +24,9 @@ def build(st: Settings, nodes: list) -> dict:
 
     cfg: dict = {
         "mixed-port": int(st["mixed_port"]),
-        "allow-lan": bool(st["allow_lan"]),
-        "bind-address": st["bind_address"],
-        "ipv6": bool(st["ipv6"]),
+        "allow-lan": False,
+        "bind-address": "127.0.0.1",
+        "ipv6": False,
         "mode": str(st["mode"]).lower(),
         "log-level": str(st["log_level"]).lower(),
         "unified-delay": bool(st["unified_delay"]),
@@ -81,7 +79,7 @@ def _dns(st: Settings) -> dict:
     dns: dict = {
         "enable": True,
         "listen": "127.0.0.1:1053",
-        "ipv6": bool(st["ipv6"]),
+        "ipv6": False,
         "prefer-h3": False,
         "respect-rules": False,
         "default-nameserver": ["223.5.5.5", "119.29.29.29", "1.1.1.1"],

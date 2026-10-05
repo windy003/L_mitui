@@ -15,9 +15,6 @@ DEFAULTS: dict = {
     "mixed_port": 7890,
     "redir_port": 0,
     "tproxy_port": 0,
-    "allow_lan": False,
-    "bind_address": "*",
-    "ipv6": False,
     # core
     "mode": "rule",                       # rule | global | direct
     "log_level": "info",

@@ -183,6 +183,10 @@ class TestConfGen(unittest.TestCase):
     def test_structure(self):
         cfg = build(self.st, self.nodes)
         self.assertEqual(cfg["mixed-port"], 7891)
+        self.assertIs(cfg["allow-lan"], False)
+        self.assertEqual(cfg["bind-address"], "127.0.0.1")
+        self.assertIs(cfg["ipv6"], False)
+        self.assertIs(cfg["dns"]["ipv6"], False)
         self.assertEqual(cfg["secret"], "s3cret")
         self.assertEqual(len(cfg["proxies"]), 2)
         groups = {g["name"]: g for g in cfg["proxy-groups"]}

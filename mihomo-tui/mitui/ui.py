@@ -28,14 +28,12 @@ C_TAB = 8
 
 SETTING_ITEMS = [
     ("mixed_port", "Mixed port (HTTP+SOCKS)", "int"),
-    ("allow_lan", "Allow LAN", "bool"),
     ("mode", "Mode", "choice:rule,global,direct"),
     ("log_level", "Log level", "choice:silent,error,warning,info,debug"),
     ("tun", "TUN mode (needs root/setcap)", "bool"),
     ("tun_stack", "TUN stack", "choice:system,gvisor,mixed"),
     ("dns_enable", "Built-in DNS", "bool"),
     ("fake_ip", "fake-ip mode", "bool"),
-    ("ipv6", "IPv6", "bool"),
     ("udp", "Enable UDP on nodes", "bool"),
     ("skip_cert_verify", "Skip TLS verify on all nodes", "bool"),
     ("test_url", "Latency test URL", "str"),
