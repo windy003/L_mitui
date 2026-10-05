@@ -1,4 +1,4 @@
-"""Client for the mihomo external controller (RESTful API)."""
+﻿"""Client for the mihomo external controller (RESTful API)."""
 
 from __future__ import annotations
 
@@ -23,8 +23,7 @@ class Api:
                 host = "127.0.0.1" + host
             self.base = "http://%s" % host.rstrip("/")
         self.secret = secret
-        # Never route control-plane calls through a proxy, including one the
-        # core itself is serving.
+        # 控制平面调用绝不通过代理路由，包括核心程序自身提供的代理。
         self._opener = urllib.request.build_opener(
             urllib.request.ProxyHandler({})
         )
