@@ -1,12 +1,10 @@
-"""YAML in/out with no hard dependency.
+"""YAML 输入/输出无需硬依赖。
 
-Writing is fully self-contained: we only ever emit the subset of YAML that the
-mihomo config needs (nested maps, lists, scalars), so a hand written serializer
-is both sufficient and predictable.
+写入功能完全自包含：我们只输出 mihomo 配置所需的 YAML 子集（嵌套映射、列表、标量），
+因此手写序列化器既足够，也能保证行为可预测。
 
-Reading prefers PyYAML when it is installed -- subscription payloads come from
-arbitrary providers -- and falls back to a small block/flow parser that covers
-what Clash/mihomo subscription files actually use.
+读取时，如果已安装 PyYAML，则优先使用它——订阅内容来自各种不同的提供方；
+否则回退到一个小型的块式/流式解析器，支持 Clash/mihomo 订阅文件实际使用的语法。
 """
 
 from __future__ import annotations
