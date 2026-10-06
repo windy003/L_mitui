@@ -103,7 +103,7 @@ def _dns(st: Settings) -> dict:
         dns["enhanced-mode"] = "normal"
     if not st["tun"]:
         # 未启用 TUN 时，没有流量会经由 53 端口进入核心程序，因此解析器
-        # only used for rule matching -- don't open a listener nobody uses.
+        # DNS 仅用于规则匹配，无需启动未使用的监听器。
         dns.pop("listen", None)
     return dns
 
