@@ -21,7 +21,7 @@ _RESERVED = {"y", "yes", "n", "no", "true", "false", "on", "off", "null", "none"
 # dump
 # --------------------------------------------------------------------------- #
 def quote(s: str) -> str:
-    """Render a Python string as a YAML scalar, quoting only when needed."""
+    """将 Python 字符串渲染为 YAML 标量，仅在必要时添加引号。"""
     if (
         _PLAIN_OK.match(s)
         and s.strip() == s
