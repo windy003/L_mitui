@@ -1,17 +1,13 @@
-"""Locate, install, and supervise the mihomo core process."""
+"""Locate and supervise the mihomo core process."""
 
 from __future__ import annotations
 
-import gzip
 import json
 import os
-import platform
-import re
 import shutil
 import signal
 import subprocess
 import time
-import urllib.request
 from collections import deque
 from pathlib import Path
 
@@ -20,19 +16,6 @@ from .api import Api
 from .settings import Settings
 
 BINARY_NAMES = ("mihomo", "clash-meta", "Clash.Meta", "clash.meta")
-GITHUB_LATEST = "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest"
-GITHUB_DL = "https://github.com/MetaCubeX/mihomo/releases/download"
-FALLBACK_VERSION = "v1.19.2"
-
-ARCH_MAP = {
-    "x86_64": "amd64", "amd64": "amd64",
-    "aarch64": "arm64", "arm64": "arm64",
-    "armv7l": "armv7", "armv7": "armv7", "armv6l": "armv6",
-    "i386": "386", "i686": "386",
-    "riscv64": "riscv64",
-    "loongarch64": "loong64",
-    "mips64": "mips64", "s390x": "s390x",
-}
 
 
 class CoreError(Exception):
@@ -40,7 +23,7 @@ class CoreError(Exception):
 
 
 # --------------------------------------------------------------------------- #
-# binary discovery / install
+# binary discovery
 # --------------------------------------------------------------------------- #
 def find_binary(st: Settings | None = None) -> str:
     if st and st["mihomo_path"]:
@@ -59,59 +42,6 @@ def find_binary(st: Settings | None = None) -> str:
         "mihomo not found. Install it with your package manager, drop the "
         "binary at %s, or set mihomo_path in settings." % local
     )
-
-
-def detect_arch() -> str:
-    machine = platform.machine().lower()
-    arch = ARCH_MAP.get(machine)
-    if not arch:
-        raise CoreError("unsupported CPU architecture: %s" % machine)
-    return arch
-
-
-def install_core(version: str = "", arch: str = "", log=print) -> str:
-    """Download a mihomo release into ~/.local/share/mitui/bin/mihomo."""
-    paths.ensure_dirs()
-    arch = arch or detect_arch()
-    url = ""
-    if not version:
-        try:
-            req = urllib.request.Request(
-                GITHUB_LATEST, headers={"User-Agent": "mitui", "Accept": "application/vnd.github+json"}
-            )
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                release = json.loads(resp.read().decode())
-            version = release.get("tag_name") or FALLBACK_VERSION
-            pattern = re.compile(r"^mihomo-linux-%s-v[\d.]+\.gz$" % re.escape(arch))
-            for asset in release.get("assets") or []:
-                if pattern.match(asset.get("name", "")):
-                    url = asset.get("browser_download_url", "")
-                    break
-        except Exception as exc:
-            log("could not query GitHub (%s), falling back to %s"
-                % (exc, FALLBACK_VERSION))
-            version = FALLBACK_VERSION
-    if not url:
-        url = "%s/%s/mihomo-linux-%s-%s.gz" % (GITHUB_DL, version, arch, version)
-
-    log("downloading %s" % url)
-    target = paths.BIN_DIR / "mihomo"
-    tmp = paths.BIN_DIR / "mihomo.download"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "mitui"})
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            blob = resp.read()
-    except Exception as exc:
-        raise CoreError("download failed: %s" % exc) from exc
-    try:
-        binary = gzip.decompress(blob)
-    except OSError as exc:
-        raise CoreError("downloaded file is not gzip: %s" % exc) from exc
-    tmp.write_bytes(binary)
-    tmp.chmod(0o755)
-    os.replace(tmp, target)
-    log("installed %s (%s, %.1f MiB)" % (target, version, len(binary) / 1048576))
-    return str(target)
 
 
 # --------------------------------------------------------------------------- #
@@ -278,11 +208,6 @@ class Core:
         self.proc = None
         clear_pidfile()
         return True
-
-    def restart(self) -> int:
-        if self.is_running():
-            self.stop()
-        return self.start()
 
 
 def tun_ready(st: Settings | None = None) -> bool:

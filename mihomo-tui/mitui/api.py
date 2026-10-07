@@ -82,10 +82,6 @@ class Api:
         out = data.get("proxies") if isinstance(data, dict) else None
         return out if isinstance(out, dict) else {}
 
-    def configs(self) -> dict:
-        data = self._json("GET", "/configs")
-        return data if isinstance(data, dict) else {}
-
     def set_mode(self, mode: str) -> None:
         self._json("PATCH", "/configs", {"mode": mode})
 

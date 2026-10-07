@@ -109,12 +109,6 @@ class Settings:
             self.data["subscriptions"] = subs
         return subs
 
-    def find_sub(self, name: str) -> dict | None:
-        for sub in self.subs:
-            if sub.get("name") == name:
-                return sub
-        return None
-
     def add_sub(self, url: str, name: str = "") -> dict:
         url = url.strip()
         if not url:
