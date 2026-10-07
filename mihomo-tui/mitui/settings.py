@@ -55,7 +55,7 @@ class Settings:
         self.data: dict = dict(DEFAULTS)
         if data:
             for key, val in data.items():
-                if key in DEFAULTS or key.startswith("x_"):
+                if key in DEFAULTS:
                     self.data[key] = val
         if not self.data.get("secret"):
             self.data["secret"] = gen_secret()
